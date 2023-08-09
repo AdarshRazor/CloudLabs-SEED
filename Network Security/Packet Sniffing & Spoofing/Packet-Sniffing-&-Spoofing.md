@@ -131,7 +131,7 @@ containers. Here are the differences:
     /volumesfolder inside the container. We will write our code in the ./volumesfolder (on the
     VM), so they can be used inside the containers.
     
-```                
+```shell          
     volumes:
        - ./volumes:/volumes
 ```
@@ -142,7 +142,7 @@ containers. Here are the differences:
     this problem, we use the host mode for the attacker container. This allows the attacker container to
     see all the traffics. The following entry used on the attacker container:
     
-```    
+```shell
     network_mode: host
 ```
 
@@ -161,9 +161,9 @@ we need to use it in our programs. The interface name is the concatenation ofbr-
 created by Docker. When we use ifconfig to list network interfaces, we will see quite a few. Look for
 the IP address 10.9.0.1.
 
-```
+```shell
 $ ifconfig
-**br-c93733e9f913** : flags=4163<UP,BROADCAST,RUNNING,MULTICAST> mtu 1500
+br-c93733e9f913 : flags=4163<UP,BROADCAST,RUNNING,MULTICAST> mtu 1500
 inet **10.9.0.1** netmask 255.255.255.0 broadcast 10.9.0.
 ...
 ```
@@ -171,14 +171,14 @@ inet **10.9.0.1** netmask 255.255.255.0 broadcast 10.9.0.
 Another way to get the interface name is to use the "docker network" command to find out the
 network ID ourselves (the name of the network is seed-net:
 
-```
+```shell
 $ docker network ls
 
 NETWORK ID NAME DRIVER SCOPE
 a82477ae4e6b bridge bridge local
 e99b370eb525 host host local
 df62c6635eae none null local
-**c93733e9f913** seed-net bridge local
+c93733e9f913 seed-net bridge local
 ```
 
 ## 3 Lab Task Set 1: Using Scapy to Sniff and Spoof Packets
@@ -192,11 +192,11 @@ To use Scapy, we can write a Python program, and then execute this program using
 following example. We should run Python using the root privilege because the privilege is required for
 spoofing packets. At the beginning of the program (Line¿), we should import all Scapy’s modules.
 
-```
+```python
 # view mycode.py
 #!/usr/bin/env python
 
-from scapy.all import * ¿
+from scapy.all import *
 
 a = IP()
 a.show()
@@ -205,19 +205,17 @@ a.show()
 ###[ IP ]###
 version = 4
 ihl = None
-...
 
-// Make mycode.py executable (another way to run python programs)
+## Make mycode.py executable (another way to run python programs)
 # chmod a+x mycode.py
 # mycode.py
-
 ```
 
 We can also get into the interactive mode of Python and then run our program one line at a time at the
 
 Python prompt. This is more convenient if we need to change our code frequently in an experiment.
 
-```
+```python
 # python3
 >>> from scapy.all import *
 >>> a = IP()
@@ -225,7 +223,6 @@ Python prompt. This is more convenient if we need to change our code frequently 
 ###[ IP ]###
 version = 4
 ihl = None
-...
 ```
 
 ### 3.1 Task 1.1: Sniffing Packets
@@ -235,22 +232,22 @@ However, it is difficult to use Wireshark as a building block to construct other
 for that purpose. The objective of this task is to learn how to use Scapy to do packet sniffing in Python
 programs. A sample code is provided in the following:
 
-```
+```python
 #!/usr/bin/env python
 from scapy.all import *
 
 def print_pkt(pkt):
-pkt.show()
+    pkt.show()
 
-pkt = sniff(iface=’br-c93733e9f913’, filter=’icmp’, prn=print_pkt)
+pkt = sniff(iface='br-c93733e9f913', filter='icmp', prn=print_pkt)
 ```
 
 The code above will sniff the packets on the br-c93733e9f913 interface. Please read the instruction
 in the lab setup section regarding how to get the interface name. If we want to sniff on multiple interfaces,
 we can put all the interfaces in a list, and assign it to iface. See the following example:
 
-```
-iface=[’br-c93733e9f913’, ’enp0s3’]
+```python
+iface=['br-c93733e9f913', 'enp0s3']
 ```
 
 Task 1.1A. In the above program, for each captured packet, the callback function print_pkt()will be
@@ -258,7 +255,7 @@ invoked; this function will print out some of the information about the packet. 
 root privilege and demonstrate that you can indeed capture packets. After that, run the program again, but
 without using the root privilege; describe and explain your observations.
 
-```
+```shell
 // Make the program executable
 # chmod a+x sniffer.py
 
@@ -290,13 +287,13 @@ packets, and send them to another VM on the same network. We will use Wireshark 
 request will be accepted by the receiver. If it is accepted, an echo reply packet will be sent to the spoofed IP
 address. The following code shows an example of how to spoof an ICMP packets.
 
-```
+```python
 >>> from scapy.all import *
->>> a = IP() ¿
->>> a.dst = ’10.0.2.3’ ¡
->>> b = ICMP() ¬
->>> p = a/b √
->>> send(p) ƒ
+>>> a = IP()
+>>> a.dst = '10.0.2.3'
+>>> b = ICMP()
+>>> p = a/b
+>>> send(p)
 .
 Sent 1 packets.
 ```
@@ -306,7 +303,7 @@ header field. We can use ls(a) or ls(IP)to see all the attribute names/values. W
 and IP.show() to do the same. Line¡shows how to set the destination IP address field. If a field is not set,
 a default value will be used.
 
-```
+```python
 >>> ls(a)
 version : BitField (4 bits) = 4 (4)
 ihl : BitField (4 bits) = None (None)
@@ -344,9 +341,9 @@ It should be noted that this experiment only gets an estimated result, because i
 take the same route (but in practice, they may within a short period of time). The code in the following
 shows one round in the procedure.
 
-```
+```python
 a = IP()
-a.dst = ’1.2.3.4’
+a.dst = '1.2.3.4'
 a.ttl = 3
 b = ICMP()
 send(a/b)
@@ -371,7 +368,7 @@ you need to provide evidence to demonstrate that your technique works.
 In your experiment, you should ping the following three IP addresses from the user container. Report
 your observation and explain the results.
 
-```
+```shell
 ping 1.2.3.4 # a non-existing host on the Internet
 ping 10.9.0.99 # a non-existing host on the LAN
 ping 8.8.8.8 # an existing host on the Internet
@@ -381,8 +378,8 @@ Hint: You need to understand how the ARP protocol works in order to correctly ex
 You also need to know a little bit about routing. The following command help you find the router for a
 specified destination:
 
-```
-ip route get 1.2.3.
+```shell
+ip route get 1.2.3.4
 ```
 
 ## 4 Lab Task Set 2: Writing Programs to Sniff and Spoof Packets
@@ -391,11 +388,11 @@ For this set up of tasks, you should compile the C code inside the host VM, and 
 container. You can use the "docker cp" command to copy a file from the host VM to a container. See
 the following example (there is no need to type the docker ID in full):
 
-```
+```shell
 $ dockps
 
-f4501a488a69 hostA-10.9.0.
-85058cbdee62 hostB-10.9.0.
+f4501a488a69 hostA-10.9.0.5
+85058cbdee62 hostB-10.9.0.6
 24cbc879e371 seed-attacker
 
 // Copy a.out to the seed-attacker container’s /tmp folder
@@ -410,7 +407,7 @@ be put in buffer for further processing as soon as they are captured. All the de
 handled by the pcap library. The SEED book provides a sample code, showing how to write a simple sniffer
 program using pcap. We include the sample code in the following (see the book for detailed explanation).
 
-```
+```c
 #include <pcap.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -426,31 +423,30 @@ printf("Got a packet\n");
 
 int main()
 {
-pcap_t *handle;
-char errbuf[PCAP_ERRBUF_SIZE];
-struct bpf_program fp;
-char filter_exp[] = "icmp";
-bpf_u_int32 net;
+    pcap_t *handle;
+    char errbuf[PCAP_ERRBUF_SIZE];
+    struct bpf_program fp;
+    char filter_exp[] = "icmp";
+    bpf_u_int32 net;
 
-// Step 1: Open live pcap session on NIC with name eth3.
-// Students need to change "eth3" to the name found on their own
-// machines (using ifconfig). The interface to the 10.9.0.0/
-// network has a prefix "br-" (if the container setup is used).
-handle = pcap_open_live("eth3", BUFSIZ, 1, 1000, errbuf);
+    // Step 1: Open live pcap session on NIC with name eth3.
+    // Students need to change "eth3" to the name found on their own
+    // machines (using ifconfig). The interface to the 10.9.0.0/
+    // network has a prefix "br-" (if the container setup is used).
+    handle = pcap_open_live("eth3", BUFSIZ, 1, 1000, errbuf);
 
-// Step 2: Compile filter_exp into BPF psuedo-code
-pcap_compile(handle, &fp, filter_exp, 0, net);
-if (pcap_setfilter(handle, &fp) !=0) {
+    // Step 2: Compile filter_exp into BPF psuedo-code
+    pcap_compile(handle, &fp, filter_exp, 0, net);
+    if (pcap_setfilter(handle, &fp) !=0) {
+        pcap_perror(handle, "Error:");
+        exit(EXIT_FAILURE);
+    }
 
-pcap_perror(handle, "Error:");
-exit(EXIT_FAILURE);
-}
+    // Step 3: Capture packets
+    pcap_loop(handle, -1, got_packet, NULL);
 
-// Step 3: Capture packets
-pcap_loop(handle, -1, got_packet, NULL);
-
-pcap_close(handle); //Close the handle
-return 0;
+    pcap_close(handle); //Close the handle
+    return 0;
 }
 
 // Note: don’t forget to add "-lpcap" to the compilation command.
@@ -480,11 +476,11 @@ questions:
     demonstrate this. You can use the following command to check whether an interface’s promiscuous
     mode is on or off (look at thepromiscuity’s value).
     
-``` 
-    # ip -d link show dev br-f2478ef
-    
-    1249: br-f2478ef59744: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 ...
-       link/ether 02:42:ac:99:d1:88 brd ff:ff:ff:ff:ff:ff **promiscuity 1** ...
+``` shell
+# ip -d link show dev br-f2478ef
+
+1249: br-f2478ef59744: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 ...
+    link/ether 02:42:ac:99:d1:88 brd ff:ff:ff:ff:ff:ff promiscuity 1 ...
 ```
 
 Task 2.1B: Writing Filters. Please write filter expressions for your sniffer program to capture each of
@@ -515,7 +511,7 @@ packet, and (4) send out the packet through the raw socket. There are many onlin
 you how to use raw sockets in C programming. We have linked some tutorials to the lab’s web page. Please
 read them, and learn how to write a packet spoofing program. We show a simple skeleton of such a program.
 
-```
+```c
 int sd;
 struct sockaddr_in sin;
 char buffer[1024]; // You can change the buffer size
@@ -543,8 +539,8 @@ sin.sin_family = AF_INET;
 /* Send out the IP packet.
 * ip_len is the actual size of the packet. */
 if(sendto(sd, buffer, ip_len, 0, (struct sockaddr *)&sin,
-sizeof(sin)) < 0) {
-perror("sendto() error"); exit(-1);
+        sizeof(sin)) < 0) {
+    perror("sendto() error"); exit(-1);
 }
 ```
 
@@ -592,16 +588,16 @@ structures, such as IP header structure, so you can refer to the elements of the
 those structures. You can define the IP, ICMP, TCP, UDP and other header structures in your program. The
 following example show how you can construct an UDP packet:
 
-```
+```c
 struct ipheader {
-type field;
-.....
+    type field;
+    .....
 }
 
 
 struct udpheader {
-type field;
-......
+    type field;
+    ......
 }
 
 // This buffer will be used to construct raw packet.
@@ -632,7 +628,7 @@ to a data structure on your computer. If the data is a single byte, you do not n
 but if the data is a short,int,long, or a data type that consists of more than one byte, you need to call
 one of the following functions to convert the data:
 
-```
+```c
 htonl(): convert unsigned int from host to network byte order.
 ntohl(): reverse of htonl().
 htons(): convert unsigned short int from host to network byte order.
@@ -649,5 +645,4 @@ You need to submit a detailed lab report, with screenshots, to describe what you
 have observed. You also need to provide explanation to the observations that are interesting or surprising.
 Please also list the important code snippets followed by explanation. Simply attaching code without any
 explanation will not receive credits.
-
 
